@@ -1,3 +1,6 @@
-# MLAssignment
+# Machine Learning Assesment
 
-api key: V5ZPRXSBI51DEJ75 Alpha vintage
+AI trading tool
+
+Ioannis Gimiliaris
+
