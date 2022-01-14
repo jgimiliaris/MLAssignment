@@ -41,14 +41,14 @@ from tkinter import messagebox
 #GUI Initialized
 window = tk.Tk()
 window.title("AI Investment Advisor")
-frame = tk.Frame(master=window, width=800, height=600)
+frame = tk.Frame(master=window, width=800, height=800)
 frame.pack()
 
-header = tk.Label(master=frame, text = "Welcome to your Inversment advisor, AI will help you make the right investment descision", bg="white", fg="black", font=15)
+header = tk.Label(master=frame, text = "Welcome to your Inversment advisor, AI will help you make the right investment descision", bg="white", fg="black", font=18)
 header.pack()
 
-frm_ticker = tk.Frame(bg='blue', borderwidth=2)
-frm_ticker.pack(fill=tk.BOTH, side=tk.left)
+frm_ticker = tk.Frame(bg='white', borderwidth=5)
+frm_ticker.pack(fill=tk.BOTH)
 lbl_ticker = tk.Label(master=frm_ticker, text= "Enter your desired Company ticker you want to see")
 ent_ticker = tk.Entry(master=frm_ticker, width=5)
 lbl_ticker.pack()
@@ -63,13 +63,14 @@ def callback():
     elif tickerName == 'GOOG':
         return(tickerName)
 
-def prediction():
-    predictionResult = MLPred()
+def prediction(tickName):
+    predictionResult = MLPred(tickName)
     return(predictionResult)
 
 def click_handler(event):
-    predResult = prediction()
-    messagebox.showinfor("Prediction", "The predicted stock price for tomorow is: ", predResult)
+    tick = callback()
+    predResult = prediction(tick)
+    messagebox.showinfo("Prediction", "The predicted stock price for tomorow is: ", predResult)
 
 frm_predict = tk.Frame(bg='green', borderwidth=2)
 frm_predict.pack(fill=tk.BOTH, side =tk.BOTTOM)
@@ -78,7 +79,7 @@ btn_predict.pack()
 btn_predict.bind("<Button-1>", click_handler)
 
 
-def MLPred():
+def MLPred(company_ticker):
 
 
     #Data loading
@@ -115,6 +116,7 @@ def MLPred():
 
     #Model
 
+
     model = Sequential()
 
     model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
@@ -123,15 +125,19 @@ def MLPred():
     model.add(Dropout(0.2))
     model.add(LSTM(units=50))
     model.add(Dropout(0.2))
-
     model.add(Dense(units=1))
 
     model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(x_train, y_train, epochs=35, batch_size=32)
+    model.fit(x_train, y_train, epochs=32, batch_size=32)
+
+    final_model = 'final_model.sav'
+    #joblib.dump(model, final_model)
 
 
+
+    f_model = 'final_model.sav'
     #teesting the program for past data
-
+    #loaded_model = joblib.load(f_model)
 
     test_init = datetime.datetime(2020,1,1)
     test_end = datetime.datetime.now()
@@ -159,7 +165,7 @@ def MLPred():
     predicted_prices = model.predict(x_test)
     predicted_prices = sclr.inverse_transform(predicted_prices)
 
-
+    '''
     #plot the test
     pyplot.plot(actual_prices, color="black", label=f"Actual")
     pyplot.plot(predicted_prices, color="blue", label=f"Predicted Price")
@@ -167,13 +173,14 @@ def MLPred():
 
     pyplot.legend()
     pyplot.show()
-
     #print(predicted_prices)
 
+    '''
 
     #Future predictions
 
-    actual_data = [model_inputs[len(model_inputs) + 1 - pred_days:len(model_inputs+1), 0]]
+    #loaded_model = joblib.load(f_model)
+    actual_data = [model_inputs[len(model_inputs) - pred_days:len(model_inputs+1), 0]]
 
     actual_data = np.array(actual_data)
     actual_data = np.reshape(actual_data, (actual_data.shape[0], actual_data.shape[1],1))
@@ -182,5 +189,9 @@ def MLPred():
     prediction = sclr.inverse_transform(prediction)
 
     print(f"Prediction for tomorw's closing price: {prediction}")
-    return(prediction)
 
+    predInt = prediction.astype(float)
+
+    return(predInt)
+
+window.mainloop()
